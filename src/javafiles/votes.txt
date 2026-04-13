@@ -1,0 +1,2 @@
+Candidate B=0
+Candidate A=0
