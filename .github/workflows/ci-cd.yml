@@ -1,4 +1,4 @@
-name: Java CI/CD Pipeline
+name: Java CI/CD Pipeline with SonarQube
 
 on:
   push:
@@ -10,28 +10,47 @@ on:
 
 jobs:
   build-test:
-    name: Build and Test Java Project
+    name: Build, Test and SonarQube Analysis
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # Step 2: Install Java 17
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      # Step 3: Display project files
       - name: Check project files
         run: ls -R
 
+      # Step 4: Compile Java source files
       - name: Compile Java files
         run: |
           mkdir -p out
           find . -name "*.java" > sources.txt
           javac -d out @sources.txt
 
+      # Step 5: Check compilation
       - name: Run application check
         run: |
           echo "Compilation successful"
+
+      # Step 6: SonarQube analysis
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=YOUR_PROJECT_KEY
+            -Dsonar.organization=YOUR_ORGANIZATION_KEY
+            -Dsonar.sources=src
+            -Dsonar.java.binaries=out
