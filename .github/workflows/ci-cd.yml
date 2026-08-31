@@ -50,7 +50,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=YOUR_PROJECT_KEY
-            -Dsonar.organization=YOUR_ORGANIZATION_KEY
+            -Dsonar.projectKey=Avika06_java-project
+            -Dsonar.organization=avika06
             -Dsonar.sources=src
             -Dsonar.java.binaries=out
