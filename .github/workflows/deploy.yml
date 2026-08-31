@@ -1,4 +1,4 @@
-name: CI/CD - Young India Cabinet
+name: CI/CD with SonarQube
 
 on:
   push:
@@ -13,33 +13,47 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  build:
+
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Validate HTML file
-        run: |
-          test -f index.html
-          grep -q "<!DOCTYPE html>" index.html
-          grep -q "<html" index.html
-          grep -q "</html>" index.html
-
-      - name: Upload website artifact
-        uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          fetch-depth: 0
+
+      - name: Show project files
+        run: |
+          echo "Project files:"
+          find . -maxdepth 3 -type f
+
+      # -------------------------
+      # SONARQUBE TESTING
+      # -------------------------
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # -------------------------
+      # UPLOAD FOR DEPLOYMENT
+      # -------------------------
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./src
+
 
   deploy:
+    needs: build-and-test
+
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
+
     runs-on: ubuntu-latest
 
     environment:
@@ -47,6 +61,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy to GitHub Pages
+
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
